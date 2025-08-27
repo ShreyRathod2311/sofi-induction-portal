@@ -39,23 +39,13 @@ const Index = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-primary-foreground" />
+              <div className="w-20 h-20  flex items-center justify-center">
+                <img src="SOFI_LOGO.png"/>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gradient">SoFI</h1>
-                <p className="text-xs text-muted-foreground">Society of Finance & Investing</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAdmin(true)}
-              className="flex items-center gap-2"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Admin
-            </Button>
+            
           </div>
         </div>
       </header>
@@ -88,42 +78,10 @@ const Index = () => {
                 Start Your Application
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              
-              <Button
-                size="xl"
-                variant="outline"
-                className="border-primary/20 hover:border-primary transition-smooth"
-              >
-                Learn More About SoFI
-              </Button>
+            
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
-              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-elegant">
-                <CardContent className="p-6 text-center">
-                  <Users className="w-8 h-8 mx-auto mb-3 text-primary" />
-                  <h3 className="text-2xl font-bold mb-1">500+</h3>
-                  <p className="text-muted-foreground">Active Members</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-elegant">
-                <CardContent className="p-6 text-center">
-                  <TrendingUp className="w-8 h-8 mx-auto mb-3 text-primary" />
-                  <h3 className="text-2xl font-bold mb-1">₹50L+</h3>
-                  <p className="text-muted-foreground">Portfolio Value</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-elegant">
-                <CardContent className="p-6 text-center">
-                  <Award className="w-8 h-8 mx-auto mb-3 text-primary" />
-                  <h3 className="text-2xl font-bold mb-1">50+</h3>
-                  <p className="text-muted-foreground">Events Organized</p>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </section>
@@ -175,37 +133,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl font-bold mb-6">Ready to Join SoFI?</h2>
-            <p className="text-xl text-muted-foreground mb-10">
-              Take the first step towards your finance journey. Complete our induction form and become part of our community.
-            </p>
-            
-            <Button
-              size="xl"
-              variant="premium"
-              onClick={() => setShowForm(true)}
-              className="group"
-            >
-              Start Application Now
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t bg-background/60 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-primary-foreground" />
+              <div className="w-28 h-28 flex items-center justify-center">
+               <img src="SOFI_LOGO.png"  />
               </div>
-              <span className="text-lg font-bold text-gradient">SoFI</span>
             </div>
             <p className="text-muted-foreground">
               Society of Finance and Investing • BITS Pilani
