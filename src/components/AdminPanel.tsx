@@ -63,13 +63,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
   }, [applications, searchTerm]);
 
   const loadApplications = async () => {
+    setLoading(true);
     try {
+      console.log('Loading applications...');
       const { data, error } = await supabase
         .from('applications')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Applications loaded:', data?.length || 0);
       
       // Add status field (since it's not in the database yet, we'll simulate it)
       const applicationsWithStatus = data?.map(app => ({
@@ -78,11 +85,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       })) || [];
       
       setApplications(applicationsWithStatus);
+      
+      toast({
+        title: "Applications Loaded",
+        description: `Successfully loaded ${applicationsWithStatus.length} applications.`,
+      });
     } catch (error) {
       console.error('Error loading applications:', error);
       toast({
         title: "Error",
-        description: "Failed to load applications. Please try again.",
+        description: `Failed to load applications: ${error.message || 'Unknown error'}. Please try again.`,
         variant: "destructive"
       });
     } finally {
@@ -356,159 +368,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                   onClick={() => setSelectedApplication(app)}
                                 >
                                   <Eye className="w-4 h-4" />
+                                  <span className="sr-only">View Details</span>
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                   <DialogTitle>Application Details - {app.full_name}</DialogTitle>
                                   <DialogDescription>
                                     Review the complete application submission
                                   </DialogDescription>
                                 </DialogHeader>
-                                {selectedApplication && (
+                                {selectedApplication && selectedApplication.id === app.id && (
                                   <div className="space-y-6">
-                                    {/* Personal Information */}
-                                    <div>
-                                      <h3 className="text-lg font-semibold mb-3">Personal Information</h3>
-                                      <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                          <Label className="text-sm font-medium">Full Name</Label>
-                                          <p className="text-sm text-muted-foreground">{selectedApplication.full_name}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">BITS ID</Label>
-                                          <p className="text-sm text-muted-foreground">{selectedApplication.bits_id}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Email</Label>
-                                          <p className="text-sm text-muted-foreground">{selectedApplication.email}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Mobile</Label>
-                                          <p className="text-sm text-muted-foreground">{selectedApplication.mobile_number}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Basic Questions */}
-                                    <div>
-                                      <h3 className="text-lg font-semibold mb-3">Basic Questions</h3>
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label className="text-sm font-medium">Assets & Equity</Label>
-                                          <Textarea value={selectedApplication.assets_equity_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Financial Statements</Label>
-                                          <Textarea value={selectedApplication.financial_statements_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Net Worth</Label>
-                                          <Textarea value={selectedApplication.net_worth_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Balance Sheet vs Income Statement</Label>
-                                          <Textarea value={selectedApplication.balance_income_difference} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">P/E and P/B Ratio</Label>
-                                          <Textarea value={selectedApplication.pe_pb_ratio_answer} readOnly className="mt-1" />
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Case Studies */}
-                                    <div>
-                                      <h3 className="text-lg font-semibold mb-3">Case Studies</h3>
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label className="text-sm font-medium">Loan Transaction</Label>
-                                          <Textarea value={selectedApplication.loan_transaction_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Life Annual Report</Label>
-                                          <Textarea value={selectedApplication.life_annual_report_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Tinder Portfolio</Label>
-                                          <Textarea value={selectedApplication.tinder_portfolio_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">Stock Market Explanation</Label>
-                                          <Textarea value={selectedApplication.stock_market_explanation} readOnly className="mt-1" />
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* About SoFI */}
-                                    <div>
-                                      <h3 className="text-lg font-semibold mb-3">About SoFI</h3>
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label className="text-sm font-medium">SoFI Platforms</Label>
-                                          <Textarea value={selectedApplication.sofi_platforms_answer} readOnly className="mt-1" />
-                                        </div>
-                                        <div>
-                                          <Label className="text-sm font-medium">SoFI Purpose</Label>
-                                          <Textarea value={selectedApplication.sofi_purpose_answer} readOnly className="mt-1" />
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex justify-end gap-2 pt-4 border-t">
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => handleStatusChange(selectedApplication.id, 'rejected')}
-                                        className="text-red-600 hover:text-red-700"
-                                      >
-                                        <X className="w-4 h-4 mr-2" />
-                                        Reject
-                                      </Button>
-                                      <Button
-                                        onClick={() => handleStatusChange(selectedApplication.id, 'accepted')}
-                                        className="bg-green-600 hover:bg-green-700 text-white"
-                                      >
-                                        <Check className="w-4 h-4 mr-2" />
-                                        Accept
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-                              </DialogContent>
-                            </Dialog>
-                            
-                            {app.status === 'pending' && (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusChange(app.id, 'accepted')}
-                                  className="text-green-600 hover:text-green-700"
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusChange(app.id, 'rejected')}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-};

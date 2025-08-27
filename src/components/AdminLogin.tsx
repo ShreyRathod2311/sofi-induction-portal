@@ -21,8 +21,11 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Add some delay to simulate authentication
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // Simple hardcoded authentication
-    if (username === 'sofigoats' && password === 'financekimkc') {
+    if (username.toLowerCase().trim() === 'sofigoats' && password.trim() === 'financekimkc') {
       toast({
         title: "Login Successful",
         description: "Welcome to the admin panel!",

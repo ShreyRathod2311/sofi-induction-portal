@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Users, TrendingUp, Award, FileSpreadsheet, Sparkles, Target, BookOpen, Trophy, Shield } from "lucide-react";
 import { InductionForm } from "@/components/InductionForm";
 import { AdminLogin } from "@/components/AdminLogin";
+import { AdminPanel } from "@/components/AdminPanel";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 
 const Index = () => {
@@ -24,7 +25,6 @@ const Index = () => {
   }
 
   if (isAdminAuthenticated) {
-    const { AdminPanel } = require("@/components/AdminPanel");
     return (
       <AdminPanel 
         onBack={() => {
