@@ -11,7 +11,7 @@ interface BackgroundPathsProps {
 export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
   className,
   pathColor = "currentColor",
-  pathOpacity = 0.1,
+  pathOpacity = 0.3,
   animated = true
 }) => {
   return (
