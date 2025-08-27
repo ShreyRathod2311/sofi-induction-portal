@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          assets_equity_answer: string
+          balance_income_difference: string
+          bits_id: string
+          created_at: string
+          email: string
+          financial_statements_answer: string
+          full_name: string
+          id: string
+          life_annual_report_answer: string
+          loan_transaction_answer: string
+          mobile_number: string
+          net_worth_answer: string
+          pe_pb_ratio_answer: string
+          sofi_platforms_answer: string
+          sofi_purpose_answer: string
+          stock_market_explanation: string
+          tinder_portfolio_answer: string
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          assets_equity_answer: string
+          balance_income_difference: string
+          bits_id: string
+          created_at?: string
+          email: string
+          financial_statements_answer: string
+          full_name: string
+          id?: string
+          life_annual_report_answer: string
+          loan_transaction_answer: string
+          mobile_number: string
+          net_worth_answer: string
+          pe_pb_ratio_answer: string
+          sofi_platforms_answer: string
+          sofi_purpose_answer: string
+          stock_market_explanation: string
+          tinder_portfolio_answer: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          assets_equity_answer?: string
+          balance_income_difference?: string
+          bits_id?: string
+          created_at?: string
+          email?: string
+          financial_statements_answer?: string
+          full_name?: string
+          id?: string
+          life_annual_report_answer?: string
+          loan_transaction_answer?: string
+          mobile_number?: string
+          net_worth_answer?: string
+          pe_pb_ratio_answer?: string
+          sofi_platforms_answer?: string
+          sofi_purpose_answer?: string
+          stock_market_explanation?: string
+          tinder_portfolio_answer?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
