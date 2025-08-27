@@ -40,7 +40,7 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-20 h-20  flex items-center justify-center">
-                <link rel="icon" type="image/png" href="SOFI_LOGO.png" />
+                <img src="SOFI_LOGO.png"/>
               </div>
               <div>
               </div>
@@ -139,7 +139,7 @@ const Index = () => {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <div className="w-28 h-28 flex items-center justify-center">
-               <link rel="icon" type="image/png" href="SOFI_LOGO.png" />
+               <img src="SOFI_LOGO.png"  />
               </div>
             </div>
             <p className="text-muted-foreground">
