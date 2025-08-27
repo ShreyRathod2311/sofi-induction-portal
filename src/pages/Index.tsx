@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Users, TrendingUp, Award, FileSpreadsheet, Sparkles, Target, BookOpen, Trophy } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, Award, FileSpreadsheet, Sparkles, Target, BookOpen, Trophy, Shield } from "lucide-react";
 import { InductionForm } from "@/components/InductionForm";
-import { AdminPanel } from "@/components/AdminPanel";
+import { AdminLogin } from "@/components/AdminLogin";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
-  if (showAdmin) {
-    return <AdminPanel onBack={() => setShowAdmin(false)} />;
+  if (showAdminLogin && !isAdminAuthenticated) {
+    return (
+      <AdminLogin 
+        onLogin={() => {
+          setIsAdminAuthenticated(true);
+          setShowAdminLogin(false);
+        }}
+        onBack={() => setShowAdminLogin(false)}
+      />
+    );
+  }
+
+  if (isAdminAuthenticated) {
+    const { AdminPanel } = require("@/components/AdminPanel");
+    return (
+      <AdminPanel 
+        onBack={() => {
+          setIsAdminAuthenticated(false);
+          setShowAdminLogin(false);
+        }}
+        onLogout={() => {
+          setIsAdminAuthenticated(false);
+          setShowAdminLogin(false);
+        }}
+      />
+    );
   }
 
   if (showForm) {
@@ -35,7 +60,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <BackgroundPaths className="fixed inset-0 z-0" pathColor="hsl(var(--primary))" pathOpacity={0.08} />
+      <BackgroundPaths className="fixed inset-0 z-0" pathColor="hsl(var(--primary))" pathOpacity={0.25} />
       
       {/* Header */}
       <header className="border-b bg-background/90 backdrop-blur-md sticky top-0 z-50 animate-slide-up">
@@ -54,6 +79,14 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">BITS Pilani</p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowAdminLogin(true)}
+              className="flex items-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              Admin
+            </Button>
           </div>
         </div>
       </header>
@@ -96,36 +129,6 @@ const Index = () => {
               </Button>
             </div>
 
-            {/* Feature highlights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-16">
-              {[
-                {
-                  icon: Target,
-                  title: "Skill Assessment",
-                  description: "Test your financial knowledge with our comprehensive questions"
-                },
-                {
-                  icon: BookOpen,
-                  title: "Creative Challenges",
-                  description: "Apply concepts through fun and engaging case studies"
-                },
-                {
-                  icon: Trophy,
-                  title: "Join the Community",
-                  description: "Become part of BITS Pilani's premier finance society"
-                }
-              ].map((feature, index) => (
-                <div key={index} className="stagger-animation group">
-                  <div className="flex flex-col items-center text-center p-6 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50 hover-lift">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm">{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>

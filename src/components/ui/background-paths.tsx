@@ -11,7 +11,7 @@ interface BackgroundPathsProps {
 export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
   className,
   pathColor = "currentColor",
-  pathOpacity = 0.3,
+  pathOpacity = 0.25,
   animated = true
 }) => {
   return (
@@ -24,9 +24,9 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
       >
         <defs>
           <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={pathColor} stopOpacity={pathOpacity * 0.5} />
+            <stop offset="0%" stopColor={pathColor} stopOpacity={pathOpacity * 0.8} />
             <stop offset="50%" stopColor={pathColor} stopOpacity={pathOpacity} />
-            <stop offset="100%" stopColor={pathColor} stopOpacity={pathOpacity * 0.3} />
+            <stop offset="100%" stopColor={pathColor} stopOpacity={pathOpacity * 0.6} />
           </linearGradient>
         </defs>
         
@@ -34,7 +34,7 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
         <path
           d="M-100,200 Q200,100 400,200 T800,150 Q1000,100 1300,200"
           stroke="url(#pathGradient)"
-          strokeWidth="2"
+          strokeWidth="3"
           fill="none"
           className={animated ? "animate-pulse" : ""}
           style={{
@@ -46,7 +46,7 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
         <path
           d="M-50,400 Q300,300 600,400 T1200,350"
           stroke="url(#pathGradient)"
-          strokeWidth="1.5"
+          strokeWidth="2.5"
           fill="none"
           className={animated ? "animate-pulse" : ""}
           style={{
@@ -58,7 +58,7 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
         <path
           d="M100,600 Q400,500 700,600 T1100,550"
           stroke="url(#pathGradient)"
-          strokeWidth="1"
+          strokeWidth="2"
           fill="none"
           className={animated ? "animate-pulse" : ""}
           style={{
@@ -71,7 +71,7 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
         <circle
           cx="200"
           cy="150"
-          r="3"
+          r="4"
           fill={pathColor}
           fillOpacity={pathOpacity}
           className={animated ? "animate-ping" : ""}
@@ -84,7 +84,7 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
         <circle
           cx="800"
           cy="300"
-          r="2"
+          r="3"
           fill={pathColor}
           fillOpacity={pathOpacity}
           className={animated ? "animate-ping" : ""}
@@ -97,7 +97,7 @@ export const BackgroundPaths: React.FC<BackgroundPathsProps> = ({
         <circle
           cx="600"
           cy="500"
-          r="2.5"
+          r="3.5"
           fill={pathColor}
           fillOpacity={pathOpacity}
           className={animated ? "animate-ping" : ""}
