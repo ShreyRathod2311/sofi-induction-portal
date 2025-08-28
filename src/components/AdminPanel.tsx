@@ -234,6 +234,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         `"${formatDate(app.created_at)}"`,
         `"${app.reviewed_at ? formatDate(app.reviewed_at) : 'N/A'}"`,
         `"${app.reviewed_by || 'N/A'}"`,
+        `"${app.admin_review ? app.admin_review.replace(/"/g, '""') : 'N/A'}"`,
         `"${app.assets_equity_answer.replace(/"/g, '""')}"`,
         `"${app.financial_statements_answer.replace(/"/g, '""')}"`,
         `"${app.net_worth_answer.replace(/"/g, '""')}"`,
