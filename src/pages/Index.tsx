@@ -76,7 +76,7 @@ const Index = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gradient">Society of Finance & Investing</h2>
-                <p className="text-sm text-muted-foreground">BITS Pilani</p>
+                <p className="text-sm text-muted-foreground">BITS Goa</p>
               </div>
             </div>
             <Button
@@ -228,7 +228,7 @@ const Index = () => {
               </div>
             </div>
             <p className="text-muted-foreground mb-2">
-              Society of Finance and Investing • BITS Pilani
+              Society of Finance and Investing • BITS Goa
             </p>
             <p className="text-sm text-muted-foreground/60">
               Empowering the next generation of financial leaders
