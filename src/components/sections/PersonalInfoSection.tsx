@@ -5,13 +5,13 @@ import { FormData } from "../InductionForm";
 
 interface PersonalInfoSectionProps {
   data: FormData;
-  updateData: (data: Partial<FormData>) => void;
+    const bitsIdRegex = /^\d{4}(PH|[ABCDHJ][ABCDJ0-9])(PS|TS|PX|RM|IS|IO|[ABHCDJ0-9][ABCDJ0-9])\d{4}[GHP]$/;
   errors?: Record<string, string>;
 }
 
 export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
-  data,
-  updateData,
+    // Ensure exactly 10 digits, no more, no less
+    return phone.length === 10 && /^\d{10}$/.test(phone);
   errors = {}
 }) => {
   return (

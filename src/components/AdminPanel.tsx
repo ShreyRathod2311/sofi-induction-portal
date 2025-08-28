@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, LogOut, Users, FileText, Calendar, Eye, Download, RefreshCw, Check, X, Clock, Filter, Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Application {
   id: string;
+  admin_review: string | null;
   full_name: string;
   bits_id: string;
   mobile_number: string;
@@ -115,6 +118,48 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       toast({
         title: "Error",
         description: `Failed to ${status} application. Please try again.`,
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const updateApplicationReview = async (id: string, review: string) => {
+    try {
+      setProcessingId(id);
+      const { error } = await supabase
+        .from('applications')
+        .update({
+          admin_review: review,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: 'Admin'
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
+      const updatedApplications = applications.map(app =>
+        app.id === id 
+          ? { ...app, admin_review: review, reviewed_at: new Date().toISOString(), reviewed_by: 'Admin' }
+          : app
+      );
+      setApplications(updatedApplications);
+      applyFilters(updatedApplications, statusFilter, searchQuery);
+
+      toast({
+        title: "Review saved",
+        description: "The admin review has been saved successfully.",
+      });
+
+      setReviewText('');
+      setReviewingApplicationId(null);
+    } catch (error) {
+      console.error('Error updating review:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save review. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -555,6 +600,92 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                       </div>
                                     </div>
                                   </TabsContent>
+                                  
+                                  {/* Admin Review Section */}
+                                  <div className="mt-8 pt-6 border-t">
+                                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                      <FileText className="w-5 h-5" />
+                                      Admin Review
+                                    </h3>
+                                    
+                                    {application.admin_review ? (
+                                      <div className="space-y-4">
+                                        <div>
+                                          <label className="text-sm font-semibold text-foreground">Current Review</label>
+                                          <div className="text-sm mt-2 p-4 bg-blue-50 rounded-md border-l-4 border-l-blue-500">
+                                            {application.admin_review}
+                                          </div>
+                                        </div>
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => {
+                                            setReviewingApplicationId(application.id);
+                                            setReviewText(application.admin_review || '');
+                                          }}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <FileText className="w-4 h-4" />
+                                          Edit Review
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-4">
+                                        <p className="text-sm text-muted-foreground">No review added yet.</p>
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => {
+                                            setReviewingApplicationId(application.id);
+                                            setReviewText('');
+                                          }}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <FileText className="w-4 h-4" />
+                                          Add Review
+                                        </Button>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Review Form */}
+                                    {reviewingApplicationId === application.id && (
+                                      <div className="mt-4 space-y-4 p-4 bg-muted/30 rounded-lg">
+                                        <div className="space-y-2">
+                                          <Label htmlFor="review-text" className="text-sm font-medium">
+                                            Admin Review
+                                          </Label>
+                                          <Textarea
+                                            id="review-text"
+                                            value={reviewText}
+                                            onChange={(e) => setReviewText(e.target.value)}
+                                            placeholder="Write your review about this applicant..."
+                                            className="min-h-[120px]"
+                                          />
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            onClick={() => updateApplicationReview(application.id, reviewText)}
+                                            disabled={processingId === application.id || !reviewText.trim()}
+                                            className="flex items-center gap-2"
+                                          >
+                                            {processingId === application.id ? (
+                                              <RefreshCw className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                              <Check className="w-4 h-4" />
+                                            )}
+                                            Save Review
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                              setReviewingApplicationId(null);
+                                              setReviewText('');
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                   
                                   {/* Action Buttons */}
                                   {application.status === 'pending' && (
