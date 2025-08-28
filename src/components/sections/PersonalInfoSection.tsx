@@ -6,11 +6,13 @@ import { FormData } from "../InductionForm";
 interface PersonalInfoSectionProps {
   data: FormData;
   updateData: (data: Partial<FormData>) => void;
+  errors?: Record<string, string>;
 }
 
 export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   data,
-  updateData
+  updateData,
+  errors = {}
 }) => {
   return (
     <div className="space-y-6">
@@ -24,8 +26,11 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             value={data.fullName}
             onChange={(e) => updateData({ fullName: e.target.value })}
             placeholder="Enter your full name"
-            className="transition-smooth focus:shadow-glow"
+            className={`transition-smooth focus:shadow-glow ${errors.fullName ? 'border-red-500' : ''}`}
           />
+          {errors.fullName && (
+            <p className="text-sm text-red-500 mt-1">{errors.fullName}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -35,10 +40,16 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           <Input
             id="bitsId"
             value={data.bitsId}
-            onChange={(e) => updateData({ bitsId: e.target.value })}
+            onChange={(e) => updateData({ bitsId: e.target.value.toUpperCase() })}
             placeholder="e.g., 2023A7PS0000G"
-            className="transition-smooth focus:shadow-glow"
+            className={`transition-smooth focus:shadow-glow ${errors.bitsId ? 'border-red-500' : ''}`}
           />
+          {errors.bitsId && (
+            <p className="text-sm text-red-500 mt-1">{errors.bitsId}</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Format: YearCampusDisciplineBranchNumber[GHP]
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -49,10 +60,20 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             id="mobileNumber"
             type="tel"
             value={data.mobileNumber}
-            onChange={(e) => updateData({ mobileNumber: e.target.value })}
-            placeholder="+91 98765 43210"
-            className="transition-smooth focus:shadow-glow"
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+              updateData({ mobileNumber: value });
+            }}
+            placeholder="9876543210"
+            className={`transition-smooth focus:shadow-glow ${errors.mobileNumber ? 'border-red-500' : ''}`}
+            maxLength={10}
           />
+          {errors.mobileNumber && (
+            <p className="text-sm text-red-500 mt-1">{errors.mobileNumber}</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Enter 10 digits without country code
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -63,10 +84,17 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             id="whatsappNumber"
             type="tel"
             value={data.whatsappNumber}
-            onChange={(e) => updateData({ whatsappNumber: e.target.value })}
-            placeholder="+91 98765 43210"
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+              updateData({ whatsappNumber: value });
+            }}
+            placeholder="9876543210"
             className="transition-smooth focus:shadow-glow"
+            maxLength={10}
           />
+          <p className="text-xs text-muted-foreground">
+            Enter 10 digits without country code (optional)
+          </p>
         </div>
       </div>
 
@@ -80,8 +108,11 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           value={data.email}
           onChange={(e) => updateData({ email: e.target.value })}
           placeholder="your.email@example.com"
-          className="transition-smooth focus:shadow-glow"
+          className={`transition-smooth focus:shadow-glow ${errors.email ? 'border-red-500' : ''}`}
         />
+        {errors.email && (
+          <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+        )}
       </div>
     </div>
   );
