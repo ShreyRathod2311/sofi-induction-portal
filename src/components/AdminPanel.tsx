@@ -54,6 +54,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [reviewingApplicationId, setReviewingApplicationId] = useState<string | null>(null);
+  const [reviewText, setReviewText] = useState('');
   const { toast } = useToast();
 
   const fetchApplications = async () => {
