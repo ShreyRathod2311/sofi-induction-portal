@@ -84,9 +84,9 @@ export const InductionForm = () => {
   };
 
   const validateBitsId = (bitsId: string): boolean => {
-    const bitsIdRegex = /^\d{4}(PH|[ABCDHJ][ABCDJ0-9])(PS|TS|PX|RM|IS|IO|[ABHCDJ0-9][ABCDJ0-9])\d{4}[GHP]$/;
-    return bitsIdRegex.test(bitsId);
-  };
+  const bitsIdRegex = /^\d{4}(PH|[ABCDHJ](A|B|C|D|J|[0-9]))(PS|TS|PX|RM|IS|IO|UB|CS|MM([ABHCDJ]|[0-9])(A|B|C|D|J|[0-9]))\d{4}[GHP]$/;
+  return bitsIdRegex.test(bitsId);
+};
 
   const validatePhoneNumber = (phone: string): boolean => {
     // Ensure exactly 10 digits, no more, no less
