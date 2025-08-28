@@ -29,8 +29,11 @@ export type Database = {
           mobile_number: string
           net_worth_answer: string
           pe_pb_ratio_answer: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           sofi_platforms_answer: string
           sofi_purpose_answer: string
+          status: string | null
           stock_market_explanation: string
           tinder_portfolio_answer: string
           updated_at: string
@@ -50,8 +53,11 @@ export type Database = {
           mobile_number: string
           net_worth_answer: string
           pe_pb_ratio_answer: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sofi_platforms_answer: string
           sofi_purpose_answer: string
+          status?: string | null
           stock_market_explanation: string
           tinder_portfolio_answer: string
           updated_at?: string
@@ -71,8 +77,11 @@ export type Database = {
           mobile_number?: string
           net_worth_answer?: string
           pe_pb_ratio_answer?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sofi_platforms_answer?: string
           sofi_purpose_answer?: string
+          status?: string | null
           stock_market_explanation?: string
           tinder_portfolio_answer?: string
           updated_at?: string
