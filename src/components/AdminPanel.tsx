@@ -34,7 +34,7 @@ interface Application {
   stock_market_explanation: string;
   sofi_platforms_answer: string;
   sofi_purpose_answer: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'waitlisted';
   reviewed_at: string | null;
   reviewed_by: string | null;
   created_at: string;
@@ -56,6 +56,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [reviewingApplicationId, setReviewingApplicationId] = useState<string | null>(null);
   const [reviewText, setReviewText] = useState('');
+  const [reviewerName, setReviewerName] = useState('');
+  const [actionType, setActionType] = useState<'approve' | 'reject' | 'waitlist' | null>(null);
+  const [actionApplicationId, setActionApplicationId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchApplications = async () => {
@@ -88,7 +91,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     }
   };
 
-  const updateApplicationStatus = async (id: string, status: 'approved' | 'rejected') => {
+  const updateApplicationStatus = async (id: string, status: 'approved' | 'rejected' | 'waitlisted', reviewer: string) => {
     try {
       setProcessingId(id);
       const { error } = await supabase
@@ -96,7 +99,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         .update({
           status,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: 'Admin' // You can enhance this to use actual admin name
+          reviewed_by: reviewer
         })
         .eq('id', id);
 
@@ -105,7 +108,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       // Update local state
       const updatedApplications = applications.map(app =>
         app.id === id 
-          ? { ...app, status, reviewed_at: new Date().toISOString(), reviewed_by: 'Admin' }
+          ? { ...app, status, reviewed_at: new Date().toISOString(), reviewed_by: reviewer }
           : app
       );
       setApplications(updatedApplications);
@@ -113,7 +116,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
 
       toast({
         title: `Application ${status}`,
-        description: `The application has been ${status} successfully.`,
+        description: `The application has been ${status} successfully by ${reviewer}.`,
       });
     } catch (error) {
       console.error('Error updating application:', error);
@@ -124,6 +127,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       });
     } finally {
       setProcessingId(null);
+      setActionApplicationId(null);
+      setActionType(null);
+      setReviewerName('');
+    }
+  };
+
+  const handleStatusAction = (id: string, type: 'approve' | 'reject' | 'waitlist') => {
+    setActionApplicationId(id);
+    setActionType(type);
+    setReviewerName('');
+  };
+
+  const confirmStatusAction = () => {
+    if (actionApplicationId && actionType && reviewerName.trim()) {
+      const statusMap = {
+        approve: 'approved' as const,
+        reject: 'rejected' as const,
+        waitlist: 'waitlisted' as const
+      };
+      updateApplicationStatus(actionApplicationId, statusMap[actionType], reviewerName.trim());
     }
   };
 
@@ -134,8 +157,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         .from('applications')
         .update({
           admin_review: review,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: 'Admin'
+          reviewed_at: new Date().toISOString()
         })
         .eq('id', id);
 
@@ -144,7 +166,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       // Update local state
       const updatedApplications = applications.map(app =>
         app.id === id 
-          ? { ...app, admin_review: review, reviewed_at: new Date().toISOString(), reviewed_by: 'Admin' }
+          ? { ...app, admin_review: review, reviewed_at: new Date().toISOString() }
           : app
       );
       setApplications(updatedApplications);
@@ -273,6 +295,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-300">Approved</Badge>;
       case 'rejected':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-300">Rejected</Badge>;
+      case 'waitlisted':
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-300">Waitlisted</Badge>;
       default:
         return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-300">Pending</Badge>;
     }
@@ -282,7 +306,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     const pending = applications.filter(app => app.status === 'pending').length;
     const approved = applications.filter(app => app.status === 'approved').length;
     const rejected = applications.filter(app => app.status === 'rejected').length;
-    return { pending, approved, rejected };
+    const waitlisted = applications.filter(app => app.status === 'waitlisted').length;
+    return { pending, approved, rejected, waitlisted };
   };
 
   const statusStats = getStatusStats();
@@ -341,6 +366,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="waitlisted">Waitlisted</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -348,7 +374,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
@@ -390,6 +416,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
             <CardContent>
               <div className="text-2xl font-bold">{statusStats.rejected}</div>
               <p className="text-xs text-muted-foreground">Not accepted</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Waitlisted</CardTitle>
+              <Clock className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{statusStats.waitlisted}</div>
+              <p className="text-xs text-muted-foreground">On waiting list</p>
             </CardContent>
           </Card>
         </div>
@@ -436,6 +473,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                       <TableHead className="font-semibold">Mobile</TableHead>
                       <TableHead className="font-semibold">Submitted</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Reviewed By</TableHead>
                       <TableHead className="font-semibold text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -451,6 +489,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(application.status)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {application.reviewed_by || '-'}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-2">
@@ -690,9 +731,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                     )}
                                   </div>
                                   
-                                  {/* Action Buttons */}
+                                   {/* Action Buttons */}
                                   {application.status === 'pending' && (
-                                    <div className="flex justify-center gap-4 pt-6 border-t">
+                                    <div className="flex justify-center gap-3 pt-6 border-t">
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                           <Button className="bg-green-600 hover:bg-green-700 text-white" disabled={processingId === application.id}>
@@ -707,15 +748,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                               Are you sure you want to approve {application.full_name}'s application? This action cannot be undone easily.
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction 
-                                              onClick={() => updateApplicationStatus(application.id, 'approved')}
-                                              className="bg-green-600 hover:bg-green-700"
-                                            >
-                                              Approve
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
+                                         <AlertDialogFooter>
+                                           <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                           <AlertDialogAction 
+                                             onClick={() => handleStatusAction(application.id, 'approve')}
+                                             className="bg-green-600 hover:bg-green-700"
+                                           >
+                                             Approve
+                                           </AlertDialogAction>
+                                         </AlertDialogFooter>
                                         </AlertDialogContent>
                                       </AlertDialog>
 
@@ -733,13 +774,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                               Are you sure you want to reject {application.full_name}'s application? This action cannot be undone easily.
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
+                                         <AlertDialogFooter>
+                                           <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                           <AlertDialogAction 
+                                             onClick={() => handleStatusAction(application.id, 'reject')}
+                                             className="bg-red-600 hover:bg-red-700"
+                                           >
+                                             Reject
+                                           </AlertDialogAction>
+                                         </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={processingId === application.id}>
+                                            <Clock className="w-4 h-4 mr-2" />
+                                            Waitlist Application
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Waitlist Application</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Are you sure you want to waitlist {application.full_name}'s application?
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
                                           <AlertDialogFooter>
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                             <AlertDialogAction 
-                                              onClick={() => updateApplicationStatus(application.id, 'rejected')}
-                                              className="bg-red-600 hover:bg-red-700"
+                                              onClick={() => handleStatusAction(application.id, 'waitlist')}
+                                              className="bg-blue-600 hover:bg-blue-700"
                                             >
-                                              Reject
+                                              Waitlist
                                             </AlertDialogAction>
                                           </AlertDialogFooter>
                                         </AlertDialogContent>
@@ -774,15 +841,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                         Approve {application.full_name}'s application?
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => updateApplicationStatus(application.id, 'approved')}
-                                        className="bg-green-600 hover:bg-green-700"
-                                      >
-                                        Approve
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
+                                     <AlertDialogFooter>
+                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                       <AlertDialogAction 
+                                         onClick={() => handleStatusAction(application.id, 'approve')}
+                                         className="bg-green-600 hover:bg-green-700"
+                                       >
+                                         Approve
+                                       </AlertDialogAction>
+                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
 
@@ -808,17 +875,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                                         Reject {application.full_name}'s application?
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => updateApplicationStatus(application.id, 'rejected')}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Reject
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
+                                     <AlertDialogFooter>
+                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                       <AlertDialogAction 
+                                         onClick={() => handleStatusAction(application.id, 'reject')}
+                                         className="bg-red-600 hover:bg-red-700"
+                                       >
+                                         Reject
+                                       </AlertDialogAction>
+                                     </AlertDialogFooter>
                                   </AlertDialogContent>
-                                </AlertDialog>
+                                 </AlertDialog>
+
+                                 <AlertDialog>
+                                   <AlertDialogTrigger asChild>
+                                     <Button 
+                                       size="sm"
+                                       className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-2"
+                                       disabled={processingId === application.id}
+                                     >
+                                       {processingId === application.id ? (
+                                         <RefreshCw className="w-3 h-3 animate-spin" />
+                                       ) : (
+                                         <Clock className="w-3 h-3" />
+                                       )}
+                                     </Button>
+                                   </AlertDialogTrigger>
+                                   <AlertDialogContent>
+                                     <AlertDialogHeader>
+                                       <AlertDialogTitle>Waitlist Application</AlertDialogTitle>
+                                       <AlertDialogDescription>
+                                         Waitlist {application.full_name}'s application?
+                                       </AlertDialogDescription>
+                                     </AlertDialogHeader>
+                                     <AlertDialogFooter>
+                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                       <AlertDialogAction 
+                                         onClick={() => handleStatusAction(application.id, 'waitlist')}
+                                         className="bg-blue-600 hover:bg-blue-700"
+                                       >
+                                         Waitlist
+                                       </AlertDialogAction>
+                                     </AlertDialogFooter>
+                                   </AlertDialogContent>
+                                 </AlertDialog>
                               </div>
                             )}
                           </div>
@@ -831,6 +931,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
             )}
           </CardContent>
         </Card>
+
+        {/* Reviewer Name Dialog */}
+        <AlertDialog open={!!actionApplicationId} onOpenChange={() => {
+          setActionApplicationId(null);
+          setActionType(null);
+          setReviewerName('');
+        }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {actionType === 'approve' ? 'Approve' : actionType === 'reject' ? 'Reject' : 'Waitlist'} Application
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Please enter the name of the core member who reviewed this application.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <Label htmlFor="reviewer-name" className="text-sm font-medium">
+                Reviewer Name
+              </Label>
+              <Input
+                id="reviewer-name"
+                value={reviewerName}
+                onChange={(e) => setReviewerName(e.target.value)}
+                placeholder="Enter core member name..."
+                className="mt-2"
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmStatusAction}
+                disabled={!reviewerName.trim()}
+                className={
+                  actionType === 'approve' ? "bg-green-600 hover:bg-green-700" :
+                  actionType === 'reject' ? "bg-red-600 hover:bg-red-700" :
+                  "bg-blue-600 hover:bg-blue-700"
+                }
+              >
+                {actionType === 'approve' ? 'Approve' : actionType === 'reject' ? 'Reject' : 'Waitlist'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
