@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       applications: {
         Row: {
-          admin_review: string | null
           assets_equity_answer: string
           balance_income_difference: string
           bits_id: string
@@ -41,7 +40,6 @@ export type Database = {
           whatsapp_number: string | null
         }
         Insert: {
-          admin_review?: string | null
           assets_equity_answer: string
           balance_income_difference: string
           bits_id: string
@@ -66,7 +64,6 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Update: {
-          admin_review?: string | null
           assets_equity_answer?: string
           balance_income_difference?: string
           bits_id?: string
