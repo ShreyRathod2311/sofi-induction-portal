@@ -125,7 +125,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
   const toggleApplicationSelection = async (applicationId: string) => {
     const application = applications.find(app => app.id === applicationId);
     
-    // If application is approved and not already selected, change status to selected
+    // If application is approved, change status to selected
     if (application && application.status === 'approved') {
       try {
         // Optimistically update local state first
@@ -146,6 +146,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
           .eq('id', applicationId);
 
         if (error) {
+          console.error('Error updating application status:', error);
           // Revert optimistic update on error
           setApplications(prev => prev.map(app => 
             app.id === applicationId 
@@ -164,10 +165,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         console.error('Error updating application status:', error);
         toast({
           title: "Error",
-          description: "Failed to update application status",
+          description: `Failed to update application status: ${error.message || 'Unknown error'}`,
           variant: "destructive"
         });
       }
+    } else if (application && application.status === 'selected') {
+      // If already selected, show a message
+      toast({
+        title: "Already Selected",
+        description: `${application.full_name} is already in selected status`,
+        variant: "default"
+      });
     } else {
       // Regular selection toggle for non-approved applications
       const newSelected = new Set(selectedApplicationIds);
