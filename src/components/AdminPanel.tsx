@@ -48,7 +48,7 @@ interface Application {
   stock_market_explanation: string;
   sofi_platforms_answer: string;
   sofi_purpose_answer: string;
-  status: 'pending' | 'approved' | 'rejected' | 'waitlisted';
+  status: 'pending' | 'approved' | 'rejected' | 'waitlisted' | 'selected';
   created_at: string;
   updated_at: string;
   reviewed_at: string | null;
@@ -63,7 +63,7 @@ interface AdminPanelProps {
 
 interface StatusChangeData {
   applicationId: string;
-  newStatus: 'approved' | 'rejected' | 'waitlisted' | 'pending';
+  newStatus: 'approved' | 'rejected' | 'waitlisted' | 'pending' | 'selected';
   adminName: string;
   adminReview: string;
 }
@@ -98,7 +98,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       if (error) throw error;
       setApplications((data || []).map(app => ({
         ...app,
-        status: app.status as 'pending' | 'approved' | 'rejected' | 'waitlisted'
+        status: app.status as 'pending' | 'approved' | 'rejected' | 'waitlisted' | 'selected'
       })));
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -112,7 +112,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     }
   };
 
-  const handleStatusChange = (applicationId: string, newStatus: 'approved' | 'rejected' | 'waitlisted' | 'pending') => {
+  const handleStatusChange = (applicationId: string, newStatus: 'approved' | 'rejected' | 'waitlisted' | 'pending' | 'selected') => {
     setStatusChangeData({
       applicationId,
       newStatus: newStatus === 'pending' ? 'approved' : newStatus,
@@ -122,14 +122,54 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     setShowStatusDialog(true);
   };
 
-  const toggleApplicationSelection = (applicationId: string) => {
-    const newSelected = new Set(selectedApplicationIds);
-    if (newSelected.has(applicationId)) {
-      newSelected.delete(applicationId);
+  const toggleApplicationSelection = async (applicationId: string) => {
+    const application = applications.find(app => app.id === applicationId);
+    
+    // If application is approved and not already selected, change status to selected
+    if (application && application.status === 'approved') {
+      try {
+        const { error } = await supabase
+          .from('applications')
+          .update({ 
+            status: 'selected',
+            reviewed_by: application.reviewed_by || 'Admin',
+            reviewed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', applicationId);
+
+        if (error) throw error;
+
+        // Update local state
+        setApplications(prev => prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status: 'selected' as const, updated_at: new Date().toISOString() }
+            : app
+        ));
+
+        toast({
+          title: "Application Selected",
+          description: `${application.full_name} has been moved to selected status`,
+          variant: "default"
+        });
+      } catch (error) {
+        console.error('Error updating application status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update application status",
+          variant: "destructive"
+        });
+      }
     } else {
-      newSelected.add(applicationId);
+      // Regular selection toggle for non-approved applications
+      const newSelected = new Set(selectedApplicationIds);
+      if (newSelected.has(applicationId)) {
+        newSelected.delete(applicationId);
+      } else {
+        newSelected.add(applicationId);
+      }
+      setSelectedApplicationIds(newSelected);
     }
-    setSelectedApplicationIds(newSelected);
   };
 
   const confirmStatusChange = async () => {
@@ -182,6 +222,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     switch (status) {
       case 'approved':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Approved</Badge>;
+      case 'selected':
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Selected</Badge>;
       case 'rejected':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Rejected</Badge>;
       case 'waitlisted':
@@ -203,6 +245,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     total: applications.length,
     pending: applications.filter(app => app.status === 'pending').length,
     approved: applications.filter(app => app.status === 'approved').length,
+    selected: applications.filter(app => app.status === 'selected').length,
     rejected: applications.filter(app => app.status === 'rejected').length,
     waitlisted: applications.filter(app => app.status === 'waitlisted').length,
   };
@@ -240,7 +283,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
           <Card className="shadow-elegant border-0 bg-background/80">
             <CardContent className="p-6 text-center">
               <Users className="w-8 h-8 mx-auto mb-2 text-primary" />
@@ -262,6 +305,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
               <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
               <div className="text-2xl font-bold">{stats.approved}</div>
               <div className="text-sm text-muted-foreground">Approved</div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant border-0 bg-background/80">
+            <CardContent className="p-6 text-center">
+              <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <div className="text-2xl font-bold">{stats.selected}</div>
+              <div className="text-sm text-muted-foreground">Selected</div>
             </CardContent>
           </Card>
 
@@ -317,6 +368,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
+                    <option value="selected">Selected</option>
                     <option value="waitlisted">Waitlisted</option>
                     <option value="rejected">Rejected</option>
                   </select>
@@ -355,7 +407,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                   {filteredApplications.map((application) => (
                     <TableRow 
                       key={application.id} 
-                      className={`hover:bg-muted/50 cursor-pointer ${selectedApplicationIds.has(application.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
+                      className={`hover:bg-muted/50 cursor-pointer ${
+                        application.status === 'approved' 
+                          ? 'hover:bg-blue-50 border border-blue-200' 
+                          : application.status === 'selected'
+                          ? 'bg-blue-50 border-l-4 border-l-blue-500'
+                          : selectedApplicationIds.has(application.id) 
+                          ? 'bg-gray-50 border-l-4 border-l-gray-500' 
+                          : ''
+                      }`}
                       onClick={() => toggleApplicationSelection(application.id)}
                     >
                       <TableCell>
