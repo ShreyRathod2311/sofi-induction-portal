@@ -128,6 +128,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     // If application is approved and not already selected, change status to selected
     if (application && application.status === 'approved') {
       try {
+        // Optimistically update local state first
+        setApplications(prev => prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status: 'selected' as const, updated_at: new Date().toISOString() }
+            : app
+        ));
+
         const { error } = await supabase
           .from('applications')
           .update({ 
@@ -138,14 +145,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
           })
           .eq('id', applicationId);
 
-        if (error) throw error;
-
-        // Update local state
-        setApplications(prev => prev.map(app => 
-          app.id === applicationId 
-            ? { ...app, status: 'selected' as const, updated_at: new Date().toISOString() }
-            : app
-        ));
+        if (error) {
+          // Revert optimistic update on error
+          setApplications(prev => prev.map(app => 
+            app.id === applicationId 
+              ? { ...app, status: 'approved' as const }
+              : app
+          ));
+          throw error;
+        }
 
         toast({
           title: "Application Selected",
