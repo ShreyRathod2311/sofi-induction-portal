@@ -498,10 +498,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStatusChange(application.id, 'approved');
+                             handleStatusChange(application.id, 'selected');
                             }}
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            disabled={application.status === 'approved'}
+                           disabled={application.status === 'selected'}
                           >
                             <CheckCircle2 className="w-3 h-3" />
                           </Button>
