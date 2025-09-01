@@ -63,7 +63,7 @@ interface AdminPanelProps {
 
 interface StatusChangeData {
   applicationId: string;
-  newStatus: 'approved' | 'rejected' | 'waitlisted';
+  newStatus: 'approved' | 'rejected' | 'waitlisted' | 'pending';
   adminName: string;
   adminReview: string;
 }
@@ -74,6 +74,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState<Set<string>>(new Set());
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusChangeData, setStatusChangeData] = useState<StatusChangeData>({
     applicationId: '',
@@ -95,7 +96,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      setApplications((data || []).map(app => ({
+        ...app,
+        status: app.status as 'pending' | 'approved' | 'rejected' | 'waitlisted'
+      })));
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -108,14 +112,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
     }
   };
 
-  const handleStatusChange = (applicationId: string, newStatus: 'approved' | 'rejected' | 'waitlisted') => {
+  const handleStatusChange = (applicationId: string, newStatus: 'approved' | 'rejected' | 'waitlisted' | 'pending') => {
     setStatusChangeData({
       applicationId,
-      newStatus,
+      newStatus: newStatus === 'pending' ? 'approved' : newStatus,
       adminName: '',
       adminReview: ''
     });
     setShowStatusDialog(true);
+  };
+
+  const toggleApplicationSelection = (applicationId: string) => {
+    const newSelected = new Set(selectedApplicationIds);
+    if (newSelected.has(applicationId)) {
+      newSelected.delete(applicationId);
+    } else {
+      newSelected.add(applicationId);
+    }
+    setSelectedApplicationIds(newSelected);
   };
 
   const confirmStatusChange = async () => {
@@ -339,7 +353,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                 </TableHeader>
                 <TableBody>
                   {filteredApplications.map((application) => (
-                    <TableRow key={application.id} className="hover:bg-muted/50">
+                    <TableRow 
+                      key={application.id} 
+                      className={`hover:bg-muted/50 cursor-pointer ${selectedApplicationIds.has(application.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
+                      onClick={() => toggleApplicationSelection(application.id)}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
@@ -398,40 +416,63 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSelectedApplication(application)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedApplication(application);
+                            }}
                             className="flex items-center gap-1"
                           >
                             <Eye className="w-3 h-3" />
                             View
                           </Button>
-                          {application.status === 'pending' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(application.id, 'approved')}
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                              >
-                                <CheckCircle2 className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(application.id, 'waitlisted')}
-                                className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                              >
-                                <AlertCircle className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(application.id, 'rejected')}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <XCircle className="w-3 h-3" />
-                              </Button>
-                            </>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(application.id, 'approved');
+                            }}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            disabled={application.status === 'approved'}
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(application.id, 'waitlisted');
+                            }}
+                            className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                            disabled={application.status === 'waitlisted'}
+                          >
+                            <AlertCircle className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(application.id, 'rejected');
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            disabled={application.status === 'rejected'}
+                          >
+                            <XCircle className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(application.id, 'pending');
+                            }}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            disabled={application.status === 'pending'}
+                          >
+                            <Clock className="w-3 h-3" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
