@@ -88,15 +88,6 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={() => setShowAdminSetup(true)}
-                className="flex items-center gap-2 text-xs"
-                size="sm"
-              >
-                <Shield className="w-3 h-3" />
-                Setup Admin
-              </Button>
-              <Button
-                variant="outline"
                 onClick={() => setShowAdminLogin(true)}
                 className="flex items-center gap-2"
               >
