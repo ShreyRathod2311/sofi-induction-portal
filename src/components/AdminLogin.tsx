@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, User, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -21,20 +22,46 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Add some delay to simulate authentication
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Simple hardcoded authentication
-    if (username.toLowerCase().trim() === 'sofigoats' && password.trim() === 'sofikimkc') {
-      toast({
-        title: "Login Successful",
-        description: "Welcome to the admin panel!",
+    try {
+      // Try to sign in with email and password
+      // We'll use the username as email for Supabase auth
+      const email = username.toLowerCase().trim() === 'sofigoats' 
+        ? 'sofigoats@admin.com' 
+        : `${username.toLowerCase().trim()}@admin.com`;
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: password.trim(),
       });
-      onLogin();
-    } else {
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Check if user has admin profile
+        const { data: adminProfile, error: profileError } = await supabase
+          .from('admin_profiles')
+          .select('username')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (profileError || !adminProfile) {
+          // If no admin profile exists, sign out and show error
+          await supabase.auth.signOut();
+          throw new Error('Not authorized as admin');
+        }
+
+        toast({
+          title: "Login Successful",
+          description: "Welcome to the admin panel!",
+        });
+        onLogin();
+      }
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid username or password. Please try again.",
+        description: error.message || "Invalid username or password. Please try again.",
         variant: "destructive"
       });
     }
