@@ -69,11 +69,10 @@ export const CreateAdminUser: React.FC = () => {
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Admin Credentials</span>
+                    <span className="text-sm font-medium">Admin Setup</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <div>Username: sofigoats</div>
-                    <div>Password: financeislove</div>
+                    This will create an admin user with predefined credentials for system access.
                   </div>
                 </div>
                 
