@@ -5,24 +5,13 @@ import { ArrowRight, Users, TrendingUp, Award, FileSpreadsheet, Sparkles, Target
 import { InductionForm } from "@/components/InductionForm";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminPanel } from "@/components/AdminPanel";
-import { CreateAdminUser } from "@/components/CreateAdminUser";
-import { CreateCustomAdmin } from "@/components/CreateCustomAdmin";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [showAdminSetup, setShowAdminSetup] = useState(false);
-  const [showCustomAdminSetup, setShowCustomAdminSetup] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
-  if (showAdminSetup) {
-    return <CreateAdminUser />;
-  }
-
-  if (showCustomAdminSetup) {
-    return <CreateCustomAdmin />;
-  }
 
   if (showAdminLogin && !isAdminAuthenticated) {
     return (
@@ -92,20 +81,6 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowAdminSetup(true)}
-                className="flex items-center gap-2 text-sm"
-              >
-                Setup Admin
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowCustomAdminSetup(true)}
-                className="flex items-center gap-2 text-sm"
-              >
-                Create Admin
-              </Button>
               <Button
                 variant="outline"
                 onClick={() => setShowAdminLogin(true)}
