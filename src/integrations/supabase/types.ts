@@ -22,9 +22,13 @@ export type Database = {
           bits_id: string
           created_at: string
           email: string
+          evaluation_feedback: string | null
+          evaluation_score: number | null
+          evaluated_at: string | null
           financial_statements_answer: string
           full_name: string
           id: string
+          is_evaluated: boolean
           life_annual_report_answer: string
           loan_transaction_answer: string
           mobile_number: string
@@ -47,9 +51,13 @@ export type Database = {
           bits_id: string
           created_at?: string
           email: string
+          evaluation_feedback?: string | null
+          evaluation_score?: number | null
+          evaluated_at?: string | null
           financial_statements_answer: string
           full_name: string
           id?: string
+          is_evaluated?: boolean
           life_annual_report_answer: string
           loan_transaction_answer: string
           mobile_number: string
@@ -72,9 +80,13 @@ export type Database = {
           bits_id?: string
           created_at?: string
           email?: string
+          evaluation_feedback?: string | null
+          evaluation_score?: number | null
+          evaluated_at?: string | null
           financial_statements_answer?: string
           full_name?: string
           id?: string
+          is_evaluated?: boolean
           life_annual_report_answer?: string
           loan_transaction_answer?: string
           mobile_number?: string
@@ -167,6 +179,63 @@ export type Database = {
           tinder_portfolio_answer?: string
           updated_at?: string
           whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      admin_users: {
+        Row: {
+          id: string
+          username: string
+          password_hash: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          username: string
+          password_hash: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          username?: string
+          password_hash?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      important_urls: {
+        Row: {
+          id: string
+          title: string
+          url: string
+          description: string | null
+          category: string
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          url: string
+          description?: string | null
+          category?: string
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          url?: string
+          description?: string | null
+          category?: string
+          display_order?: number
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -1,4 +1,81 @@
-# Welcome to your Lovable project
+# SoFI Induction Portal
+
+A modern, interactive induction form application for the Society of Financial Informatics (SoFI) at BITS Pilani.
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js & npm (or Bun)
+- Supabase account with access to project `hbydnuuzcdkcfimlwsyd`
+
+### Setup Instructions
+
+1. **Clone and Install**
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd sofi-induction-portal
+   npm install
+   ```
+
+2. **Configure Supabase**
+   
+   **Option A: Using the setup script (recommended)**
+   ```sh
+   node setup-config.js
+   ```
+   
+   **Option B: Manual configuration**
+   - Get your anon key from [Supabase Dashboard](https://supabase.com/dashboard/project/hbydnuuzcdkcfimlwsyd/settings/api)
+   - Update `src/integrations/supabase/client.ts` (line 6)
+   - Update `.env.local` (line 2)
+   
+   See [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md) for detailed steps.
+
+3. **Run Database Migrations**
+   ```sh
+   supabase db push
+   ```
+   
+   Or manually execute SQL files from the Supabase SQL Editor (see [DATABASE_SETUP.md](DATABASE_SETUP.md))
+
+4. **Start Development Server**
+   ```sh
+   npm run dev
+   ```
+
+## 🔐 Admin Access
+
+- **Username**: `sofigoats`
+- **Password**: `sofiinduction2`
+
+Access the admin panel at `/admin` after logging in.
+
+## 📊 Database
+
+**Project**: `https://hbydnuuzcdkcfimlwsyd.supabase.co`
+
+**Connection String**: 
+```
+postgresql://postgres:[YOUR-PASSWORD]@db.hbydnuuzcdkcfimlwsyd.supabase.co:5432/postgres
+```
+
+### Tables:
+- **applications** - Stores induction form submissions
+- **admin_users** - Admin authentication
+- **important_urls** - SoFI links and resources
+
+## 📚 Documentation
+
+- [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md) - Quick setup guide
+- [DATABASE_SETUP.md](DATABASE_SETUP.md) - Detailed database documentation
+
+## 🛠️ Technology Stack
+
+- React + TypeScript
+- Vite
+- Tailwind CSS + shadcn/ui
+- Supabase (PostgreSQL)
+- Bun/npm
 
 ## Project info
 
@@ -19,22 +96,6 @@ Changes made via Lovable will be committed automatically to this repo.
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
 
 **Edit a file directly in GitHub**
 

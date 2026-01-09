@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, User, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import MD5 from 'crypto-js/md5';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -21,20 +23,47 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Add some delay to simulate authentication
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Hash the password using MD5 (same as PostgreSQL's md5 function)
+      const passwordHash = MD5(password.trim()).toString();
+      
+      // Query the database for the admin user
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('username', username.toLowerCase().trim())
+        .eq('password_hash', passwordHash)
+        .maybeSingle();
 
-    // Simple hardcoded authentication
-    if (username.toLowerCase().trim() === 'sofigoats' && password.trim() === 'sofikimkc') {
-      toast({
-        title: "Login Successful",
-        description: "Welcome to the admin panel!",
-      });
-      onLogin();
-    } else {
+      if (error) {
+        console.error('Database error:', error);
+        toast({
+          title: "Login Failed",
+          description: "An error occurred. Please try again.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome to the admin panel!",
+        });
+        onLogin();
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Invalid username or password. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Login Failed",
-        description: "Invalid username or password. Please try again.",
+        description: "An error occurred. Please try again.",
         variant: "destructive"
       });
     }

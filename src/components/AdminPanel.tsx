@@ -24,11 +24,13 @@ import {
   Phone,
   User,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { evaluateAllUnevaluated } from "@/lib/evaluationService";
 
 interface Application {
   id: string;
@@ -54,6 +56,10 @@ interface Application {
   reviewed_at: string | null;
   reviewed_by: string | null;
   admin_review: string | null;
+  is_evaluated: boolean;
+  evaluation_score: number | null;
+  evaluation_feedback: string | null;
+  evaluated_at: string | null;
 }
 
 interface AdminPanelProps {
@@ -76,6 +82,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [selectedApplicationIds, setSelectedApplicationIds] = useState<Set<string>>(new Set());
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
   const [statusChangeData, setStatusChangeData] = useState<StatusChangeData>({
     applicationId: '',
     newStatus: 'approved',
@@ -185,6 +192,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
         newSelected.add(applicationId);
       }
       setSelectedApplicationIds(newSelected);
+    }
+  };
+
+  const handleEvaluateAll = async () => {
+    setIsEvaluating(true);
+    try {
+      const result = await evaluateAllUnevaluated();
+      
+      toast({
+        title: "Evaluation Complete!",
+        description: `Evaluated: ${result.evaluated}/${result.total} applications. Auto-rejected: ${result.rejected}. Errors: ${result.errors}`,
+      });
+      
+      // Refresh applications list
+      await fetchApplications();
+    } catch (error) {
+      console.error('Evaluation error:', error);
+      toast({
+        title: "Evaluation Failed",
+        description: "Failed to evaluate applications. Check console for details.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -349,6 +380,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
           </Card>
         </div>
 
+        {/* AI Evaluation Section */}
+        <Card className="shadow-elegant border-0 bg-background/80 mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+              AI-Powered Auto-Evaluation
+            </CardTitle>
+            <CardDescription>
+              Automatically evaluate unevaluated applications using Gemini AI. Applications scoring below 40% will be auto-rejected.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={handleEvaluateAll}
+                disabled={isEvaluating}
+                className="bg-gradient-primary hover:shadow-glow"
+              >
+                {isEvaluating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Evaluating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Evaluate Unevaluated Applications
+                  </>
+                )}
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                {applications.filter(app => !app.is_evaluated).length} applications pending evaluation
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Filters */}
         <Card className="shadow-elegant border-0 bg-background/80 mb-8">
           <CardContent className="p-6">
@@ -414,6 +482,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                     <TableHead>BITS ID</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>AI Score</TableHead>
                     <TableHead>Submitted</TableHead>
                     <TableHead>Reviewed By</TableHead>
                     <TableHead>Actions</TableHead>
@@ -466,6 +535,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(application.status)}
+                      </TableCell>
+                      <TableCell>
+                        {application.is_evaluated ? (
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-3 h-3 text-purple-500" />
+                            <span className={`font-semibold ${
+                              application.evaluation_score >= 70 ? 'text-green-600' : 
+                              application.evaluation_score >= 40 ? 'text-yellow-600' : 
+                              'text-red-600'
+                            }`}>
+                              {application.evaluation_score?.toFixed(0)}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Not evaluated</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
@@ -584,6 +669,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                 </TabsList>
 
                 <TabsContent value="personal" className="space-y-4 mt-6">
+                  {/* AI Evaluation Score */}
+                  {selectedApplication.is_evaluated && (
+                    <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200 dark:border-purple-800">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-medium flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-purple-500" />
+                              AI Evaluation Score
+                            </Label>
+                            <p className="text-2xl font-bold mt-1">
+                              {selectedApplication.evaluation_score?.toFixed(1)}%
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Evaluated on {selectedApplication.evaluated_at && format(new Date(selectedApplication.evaluated_at), 'MMM dd, yyyy')}
+                            </p>
+                          </div>
+                          <Badge variant={selectedApplication.evaluation_score >= 70 ? "default" : selectedApplication.evaluation_score >= 40 ? "secondary" : "destructive"}>
+                            {selectedApplication.evaluation_score >= 70 ? "Strong" : selectedApplication.evaluation_score >= 40 ? "Moderate" : "Weak"}
+                          </Badge>
+                        </div>
+                        {selectedApplication.evaluation_feedback && (
+                          <div className="mt-3 pt-3 border-t">
+                            <Label className="text-sm font-medium">AI Feedback</Label>
+                            <p className="text-sm mt-1 text-muted-foreground">{selectedApplication.evaluation_feedback}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Full Name</Label>
@@ -610,42 +726,69 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
 
                 <TabsContent value="basic" className="space-y-6 mt-6">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Assets & Equity Question</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Q1: A company reports ₹10 Cr depreciation expense. How does this impact each of the three financial statements? Explain the flow.
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.assets_equity_answer}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Financial Statements</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Q2: If a company's Cash Flow from Operations is consistently higher than Net Income, what does this indicate about the company's earnings quality and working capital management?
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.financial_statements_answer}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Net Worth</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Q3: A company's current ratio is 2.5 and quick ratio is 0.8. What does this tell you about the company's liquidity position and inventory levels? Should this be a concern?
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.net_worth_answer}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Balance Sheet vs Income Statement</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Q4: Explain how a company can have positive net income but negative cash flow from operations. Provide two specific scenarios where this would occur.
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.balance_income_difference}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">P/E and P/B Ratio</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Q5: If a company's Debt-to-Equity ratio increases from 0.5 to 1.2 over two years while Return on Equity (ROE) increases from 12% to 18%, what does this suggest about the company's leverage strategy and financial risk?
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.pe_pb_ratio_answer}</p>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="case" className="space-y-6 mt-6">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Loan Transaction</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Case 1: Company A acquires Company B for ₹500 Cr. Company B's book value is ₹300 Cr. How would you account for the ₹200 Cr difference on Company A's balance sheet? What are the implications for future financial statements?
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.loan_transaction_answer}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Life Annual Report</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Case 2: A manufacturing company shows ₹100 Cr inventory at year-end. During the year, raw material costs increased by 40%, but the company's gross margin remained stable. What questions would you ask as an analyst, and what red flags might this scenario indicate?
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.life_annual_report_answer}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Tinder Portfolio</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Case 3: A tech startup has negative operating cash flow but is raising capital at increasing valuations. The company reports increasing revenue but flat gross margins. Using financial statement analysis, how would you assess whether this is a viable business model or a bubble waiting to burst?
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.tinder_portfolio_answer}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Stock Market Explanation</Label>
+                    <Label className="text-sm font-medium text-primary mb-2 block">
+                      Case 4: Two retail companies have identical revenue (₹1000 Cr) and EBITDA (₹150 Cr), but Company X trades at 15x EBITDA while Company Y trades at 8x EBITDA. Using your knowledge of financial statements and valuation, what factors could justify this valuation gap? Provide at least three potential reasons.
+                    </Label>
+                    <Label className="text-xs font-medium text-muted-foreground">Student Answer:</Label>
                     <p className="text-base mt-1 p-3 bg-muted/50 rounded-md">{selectedApplication.stock_market_explanation}</p>
                   </div>
                 </TabsContent>
