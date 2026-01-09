@@ -24,46 +24,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
     setIsLoading(true);
 
     try {
-      // Try to sign in with email and password
-      // We'll use the username as email for Supabase auth
-      const email = username.toLowerCase().trim() === 'sofigoats' 
-        ? 'sofigoats@admin.com' 
-        : `${username.toLowerCase().trim()}@admin.com`;
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: password.trim(),
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        // Check if user has admin profile
-        const { data: adminProfile, error: profileError } = await supabase
-          .from('admin_profiles')
-          .select('username')
-          .eq('user_id', data.user.id)
-          .single();
-
-        if (profileError || !adminProfile) {
-          // If no admin profile exists, sign out and show error
-          await supabase.auth.signOut();
-          throw new Error('Not authorized as admin');
-        }
-
-        toast({
-          title: "Login Successful",
-          description: "Welcome to the admin panel!",
-        });
-        onLogin();
-      }
-    } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid username or password. Please try again.",
-    try {
       // Hash the password using MD5 (same as PostgreSQL's md5 function)
       const passwordHash = MD5(password.trim()).toString();
       
@@ -106,9 +66,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
         description: "An error occurred. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
