@@ -1,1 +1,0 @@
-UPDATE applications SET status = 'rejected' WHERE status IN ('approved', 'waitlisted');
