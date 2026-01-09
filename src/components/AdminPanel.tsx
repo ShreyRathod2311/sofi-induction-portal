@@ -270,7 +270,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
       case 'approved':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Approved</Badge>;
       case 'selected':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Selected</Badge>;
+        return <Badge className="bg-black text-white hover:bg-gray-800">Selected</Badge>;
       case 'rejected':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Rejected</Badge>;
       case 'waitlisted':
@@ -494,9 +494,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                       key={application.id} 
                       className={`hover:bg-muted/50 cursor-pointer ${
                         application.status === 'approved' 
-                          ? 'hover:bg-blue-50 border border-blue-200' 
+                          ? 'hover:bg-green-50 border border-green-200' 
                           : application.status === 'selected'
-                          ? 'bg-blue-50 border-l-4 border-l-blue-500'
+                          ? 'bg-gray-50 border-l-4 border-l-black'
                           : selectedApplicationIds.has(application.id) 
                           ? 'bg-gray-50 border-l-4 border-l-gray-500' 
                           : ''
@@ -591,12 +591,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                             handleStatusChange(application.id, 'selected');
+                              if (application.status === 'approved') {
+                                handleStatusChange(application.id, 'selected');
+                              } else {
+                                handleStatusChange(application.id, 'approved');
+                              }
                             }}
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                           disabled={application.status === 'selected'}
+                            className={`${
+                              application.status === 'approved'
+                                ? 'text-black hover:text-gray-800 hover:bg-gray-50'
+                                : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                            }`}
+                            disabled={application.status === 'selected' || application.status === 'rejected'}
+                            title={
+                              application.status === 'approved' 
+                                ? 'Mark as Selected' 
+                                : application.status === 'selected'
+                                ? 'Already Selected'
+                                : 'Approve First'
+                            }
                           >
-                            <CheckCircle2 className="w-3 h-3" />
+                            {application.status === 'approved' ? (
+                              <>
+                                <Users className="w-3 h-3" />
+                              </>
+                            ) : (
+                              <CheckCircle2 className="w-3 h-3" />
+                            )}
                           </Button>
                           <Button
                             variant="outline"
@@ -812,15 +833,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
               </Tabs>
 
               {/* Action Buttons in Dialog */}
-              {selectedApplication?.status === 'pending' && (
+              {(selectedApplication?.status === 'pending' || selectedApplication?.status === 'approved') && (
                 <div className="flex gap-3 mt-8 pt-6 border-t">
-                  <Button
-                    onClick={() => handleStatusChange(selectedApplication.id, 'approved')}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Approve
-                  </Button>
+                  {selectedApplication.status === 'pending' && (
+                    <Button
+                      onClick={() => handleStatusChange(selectedApplication.id, 'approved')}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Approve
+                    </Button>
+                  )}
+                  
+                  {selectedApplication.status === 'approved' && (
+                    <Button
+                      onClick={() => handleStatusChange(selectedApplication.id, 'selected')}
+                      className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white"
+                    >
+                      <Users className="w-4 h-4" />
+                      Mark as Selected
+                    </Button>
+                  )}
+                  
                   <Button
                     onClick={() => handleStatusChange(selectedApplication.id, 'waitlisted')}
                     className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white"
@@ -828,14 +862,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                     <AlertCircle className="w-4 h-4" />
                     Waitlist
                   </Button>
-                  <Button
-                    onClick={() => handleStatusChange(selectedApplication.id, 'rejected')}
-                    variant="destructive"
-                    className="flex items-center gap-2"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Reject
-                  </Button>
+                  
+                  {selectedApplication.status === 'pending' && (
+                    <Button
+                      onClick={() => handleStatusChange(selectedApplication.id, 'rejected')}
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Reject
+                    </Button>
+                  )}
                 </div>
               )}
             </ScrollArea>
@@ -850,11 +887,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
             <DialogTitle className="flex items-center gap-2">
               {statusChangeData.newStatus === 'approved' && <CheckCircle2 className="w-5 h-5 text-green-600" />}
               {statusChangeData.newStatus === 'waitlisted' && <AlertCircle className="w-5 h-5 text-yellow-600" />}
+              {statusChangeData.newStatus === 'selected' && <Users className="w-5 h-5 text-black" />}
               {statusChangeData.newStatus === 'rejected' && <XCircle className="w-5 h-5 text-red-600" />}
-              Confirm {statusChangeData.newStatus === 'approved' ? 'Approval' : statusChangeData.newStatus === 'waitlisted' ? 'Waitlist' : 'Rejection'}
+              Confirm {
+                statusChangeData.newStatus === 'approved' ? 'Approval' : 
+                statusChangeData.newStatus === 'waitlisted' ? 'Waitlist' : 
+                statusChangeData.newStatus === 'selected' ? 'Selection' :
+                'Rejection'
+              }
             </DialogTitle>
             <DialogDescription>
-              Please enter your name and an optional review before {statusChangeData.newStatus === 'approved' ? 'approving' : statusChangeData.newStatus === 'waitlisted' ? 'waitlisting' : 'rejecting'} this application.
+              Please enter your name and an optional review before {
+                statusChangeData.newStatus === 'approved' ? 'approving' : 
+                statusChangeData.newStatus === 'waitlisted' ? 'waitlisting' : 
+                statusChangeData.newStatus === 'selected' ? 'selecting' :
+                'rejecting'
+              } this application.
             </DialogDescription>
           </DialogHeader>
           
@@ -902,10 +950,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onLogout }) => {
                   ? 'bg-green-600 hover:bg-green-700' 
                   : statusChangeData.newStatus === 'waitlisted'
                   ? 'bg-yellow-600 hover:bg-yellow-700'
+                  : statusChangeData.newStatus === 'selected'
+                  ? 'bg-black hover:bg-gray-800'
                   : 'bg-red-600 hover:bg-red-700'
               } text-white`}
             >
-              Confirm {statusChangeData.newStatus === 'approved' ? 'Approval' : statusChangeData.newStatus === 'waitlisted' ? 'Waitlist' : 'Rejection'}
+              Confirm {
+                statusChangeData.newStatus === 'approved' ? 'Approval' : 
+                statusChangeData.newStatus === 'waitlisted' ? 'Waitlist' : 
+                statusChangeData.newStatus === 'selected' ? 'Selection' :
+                'Rejection'
+              }
             </Button>
           </div>
         </DialogContent>

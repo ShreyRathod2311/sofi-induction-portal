@@ -12,6 +12,7 @@ const Index = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
+
   if (showAdminLogin && !isAdminAuthenticated) {
     return (
       <AdminLogin 
@@ -79,14 +80,16 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">BITS Goa</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowAdminLogin(true)}
-              className="flex items-center gap-2"
-            >
-              <Shield className="w-4 h-4" />
-              Admin
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowAdminLogin(true)}
+                className="flex items-center gap-2"
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Button>
+            </div>
           </div>
         </div>
       </header>
